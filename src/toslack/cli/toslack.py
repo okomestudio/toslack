@@ -25,17 +25,33 @@
 import argparse
 import logging
 
+import requests
+from ..pipe_reader import PipeReader
+
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S')
 
 
-def _main():
-    pass
+def _main(webhook_url):
+    pipe = PipeReader()
+    content = pipe.read(wait=3)
+    payload = {
+        'channel': '@taro',
+        'attachments': [{
+            # 'pretext': 'boo',
+            'text': '```{}```'.format(content),
+            'mrkdwn_in': ['text']}
+        ]
+    }
+    print(content)
+    resp = requests.post(webhook_url, json=payload)
+    print(resp)
 
 
 def main():
     p = argparse.ArgumentParser()
+    p.add_argument('url')
     args = p.parse_args()
-    _main()
+    _main(webhook_url=args.url)
