@@ -24,8 +24,10 @@
 # SOFTWARE.
 import argparse
 import logging
+import socket
 
 import requests
+
 from ..pipe_reader import PipeReader
 
 
@@ -34,17 +36,24 @@ logging.basicConfig(level=logging.INFO,
                     datefmt='%Y-%m-%d %H:%M:%S')
 
 
-def _main(webhook_url):
+def _main(webhook_url, channel=None, title=None):
     pipe = PipeReader()
-    content = pipe.read(wait=3)
-    payload = {
-        'channel': '@taro',
-        'attachments': [{
-            # 'pretext': 'boo',
-            'text': '```{}```'.format(content),
-            'mrkdwn_in': ['text']}
-        ]
-    }
+    content = pipe.read()
+
+    username = socket.gethostname()
+
+    attachment = {'text': '```{}```'.format(content),
+                  'mrkdwn_in': ['text', 'title']}
+    if title:
+        attachment['title'] = title
+
+    payload = {'channel': '@taro',
+               'attachments': [attachment],
+               'username': 'from ' + username,
+               'icon_emoji': ':star:'}
+    if channel:
+        payload['channel'] = channel
+
     print(content)
     resp = requests.post(webhook_url, json=payload)
     print(resp)
@@ -53,5 +62,7 @@ def _main(webhook_url):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument('url')
+    p.add_argument('--channel', '-c')
+    p.add_argument('--title', '-t')
     args = p.parse_args()
-    _main(webhook_url=args.url)
+    _main(webhook_url=args.url, channel=args.channel, title=args.title)

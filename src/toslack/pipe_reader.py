@@ -63,7 +63,7 @@ class PipeReader:
         last_read = time.time()
         out = ''
         while 1:
-            time.sleep(0.0001)
+            time.sleep(0)
             try:
                 line = self._queue.get_nowait()
             except Empty:
